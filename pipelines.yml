@@ -10,7 +10,7 @@ resources:
       branches:
         include: master
 
-  - name: docker_image
+  - name: docker_base_image
     type: Image
     configuration:
       registry: {{ .Values.artifactory }}                                # <-- replace with your artifactory integration
@@ -55,7 +55,7 @@ pipelines:
           inputSteps:
             - name: docker_build
           outputResources:
-            - name: docker_image
+            - name: docker_base_image
 
       - name: publish_dbp_build
         type: PublishBuildInfo
