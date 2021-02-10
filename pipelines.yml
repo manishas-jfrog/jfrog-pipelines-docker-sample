@@ -71,6 +71,7 @@ pipelines:
         configuration:
           affinityGroup: docker_group
           targetRepository: docker-promoted
+          copy: true
           integrations:
             - name: {{ .Values.artifactory }}
           inputResources:
