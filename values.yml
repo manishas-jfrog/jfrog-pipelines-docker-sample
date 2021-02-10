@@ -1,0 +1,4 @@
+artifactory: demoArt
+gitProvider: manishas_jfrog
+repoPath: manishas-jfrog/jfrog-pipelines-docker-sample
+imageName: pipedemo.jfrog.io/docker-local/dockersample

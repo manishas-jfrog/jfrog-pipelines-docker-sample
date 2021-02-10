@@ -2,34 +2,29 @@ resources:
   - name: dbp_repo
     type: GitRepo
     configuration:
-      gitProvider: my_github                       # <-- replace with your integration
-      path: jfrog/jfrog-pipelines-docker-sample    # <-- replace with your repository name
+      gitProvider: {{ .Values.gitProvider }}                      # <-- replace with your integration
+      path: {{ .Values.repoPath }}    # <-- replace with your repository name
       branches:
         include: master
 
-  - name: dbp_image
+  - name: docker_image
     type: Image
     configuration:
-      registry: art                                # <-- replace with your artifactory integration
-      sourceRepository: docker_local               # <-- required if registry is Artifactory
-      imageName: kaloula.jfrog-pipelines.com/docker-local/dbp  # < -- replace with your image path and name
+      registry: {{ .Values.artifactory }}                                # <-- replace with your artifactory integration
+      sourceRepository: docker-local               # <-- required if registry is Artifactory
+      imageName: {{ .Values.imageName }}  # < -- replace with your image path and name
       imageTag: latest
       autoPull: true
-      
-  - name: dbp_build_info
-    type: BuildInfo
-    configuration:
-      sourceArtifactory: art
-      buildName: dbp_build
-      buildNumber: 1    
 
-  - name: dbp_promoted_build_info
+  - name: docker_sample_build
     type: BuildInfo
     configuration:
-      sourceArtifactory: art
-      buildName: dbp_build
-      buildNumber: 1
-      
+      sourceArtifactory: {{ .Values.artifactory }}
+
+  - name: docker_promoted_build
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: {{ .Values.artifactory }}
 
 pipelines:
   - name: pipeline_dbp
@@ -37,44 +32,45 @@ pipelines:
       - name: docker_build
         type: DockerBuild
         configuration:
-          affinityGroup: dbp_group
+          affinityGroup: docker_group
           dockerFileLocation: .
           dockerFileName: Dockerfile
-          dockerImageName: kaloula.jfrog-pipelines.com/docker-local/dbp  # replace with your image path and name
+          dockerImageName: {{ .Values.imageName }}  # replace with your image path and name
           dockerImageTag: ${run_number}
           inputResources:
             - name: dbp_repo
           integrations:
-            - name: art                            # <-- replace with your artifactory integration
+            - name: {{ .Values.artifactory }}                            # <-- replace with your artifactory integration
 
       - name: docker_push
         type: DockerPush
         configuration:
-          affinityGroup: dbp_group
+          affinityGroup: docker_group
           targetRepository: docker-local
           integrations:
-            - name: art                            # <-- replace with your artifactory integration
+            - name: {{ .Values.artifactory }}                            # <-- replace with your artifactory integration
           inputSteps:
             - name: docker_build
           outputResources:
-            - name: dbp_image
+            - name: docker_image
 
       - name: publish_dbp_build
         type: PublishBuildInfo
         configuration:
+          affinityGroup: docker_group
           inputSteps:
             - name: docker_push
           outputResources:
-            - name: dbp_build_info
+            - name: docker_sample_build
 
       - name: promote_dbp_build
         type: PromoteBuild
         configuration:
-          targetRepository: demo-pipelines
+          affinityGroup: docker_group
+          targetRepository: docker-promoted
           integrations:
-            - name: art
+            - name: {{ .Values.artifactory }}
           inputResources:
-            - name: dbp_build_info
+            - name: docker_sample_build
           outputResources:
-            - name: dbp_promoted_build_info
-
+            - name: docker_promoted_build
