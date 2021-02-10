@@ -1,5 +1,8 @@
+template: true   # required for local templates
+valuesFilePath: ./values.yml
+
 resources:
-  - name: dbp_repo
+  - name: docker_repo
     type: GitRepo
     configuration:
       gitProvider: {{ .Values.gitProvider }}                      # <-- replace with your integration
@@ -38,7 +41,7 @@ pipelines:
           dockerImageName: {{ .Values.imageName }}  # replace with your image path and name
           dockerImageTag: ${run_number}
           inputResources:
-            - name: dbp_repo
+            - name: docker_repo
           integrations:
             - name: {{ .Values.artifactory }}                            # <-- replace with your artifactory integration
 
